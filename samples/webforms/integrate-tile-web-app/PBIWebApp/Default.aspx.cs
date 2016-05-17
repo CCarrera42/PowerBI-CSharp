@@ -30,9 +30,9 @@ namespace PBIWebApp
                 //After you get an AccessToken, you can call Power BI API operations such as Get Tile
                 Session["AccessToken"] = GetAccessToken(
                     Request.Params.GetValues("code")[0],
-                    Properties.Settings.Default.ClientID,
-                    Properties.Settings.Default.ClientSecret,
-                    "http://localhost:13526/");
+                    Settings.Default.ClientID,
+                    Settings.Default.ClientSecret,
+                    Settings.Default.RedirectUri);
 
                 //Redirect again to get rid of code=
                 Response.Redirect("/Default.aspx");
@@ -62,7 +62,8 @@ namespace PBIWebApp
         protected void getTileButton_Click(object sender, EventArgs e)
         {
             //You need an Authorization Code from Azure AD so that you can get an Access Token
-            GetAuthorizationCode(Settings.Default.ClientID, "http://localhost:13526/");
+            //Values are hard-coded for sample purposes.
+            GetAuthorizationCode();
         }
 
 
@@ -129,9 +130,9 @@ namespace PBIWebApp
             }
         }
 
-        public void GetAuthorizationCode(string clientId, string redirectUri)
+        public void GetAuthorizationCode()
         {
-
+            //NOTE: Values are hard-coded for sample purposes.
             //Create a query string
             //Create a sign-in NameValueCollection for query string
             var @params = new NameValueCollection
@@ -141,14 +142,15 @@ namespace PBIWebApp
 
                 //Client ID is used by the application to identify themselves to the users that they are requesting permissions from. 
                 //You get the client id when you register your Azure app.
-                {"client_id", clientId},
+                {"client_id", Settings.Default.ClientID},
 
                 //Resource uri to the Power BI resource to be authorized
-                {"resource", Properties.Settings.Default.PowerBIAPI_Resource},
+                //The resource uri is hard-coded for sample purposes
+                {"resource", "https://analysis.windows.net/powerbi/api"},
 
                 //After app authenticates, Azure AD will redirect back to the web app. In this sample, Azure AD redirects back
-                //to Default. See Page_Load
-                {"redirect_uri", redirectUri}
+                //to Default page (Default.aspx).
+                { "redirect_uri", Settings.Default.RedirectUri}
             };
 
             //Create sign-in query string
@@ -158,13 +160,13 @@ namespace PBIWebApp
             //Redirect to Azure AD Authority
             //  Authority Uri is an Azure resource that takes a client id and client secret to get an Access token
             //  QueryString contains 
+            //      response_type of "code"
             //      client_id that identifies your app in Azure AD
             //      resource which is the Power BI API resource to be authorized
-            //      redirect_uri which is the url that Azure AD will redirect back to after it authenticates
-            Response.Redirect(
-                String.Format("{0}?{1}",
-                Properties.Settings.Default.AuthorityUri,
-                queryString));
+            //      redirect_uri which is the uri that Azure AD will redirect back to after it authenticates
+
+            //Redirect to Azure AD to get an authorization code
+            Response.Redirect(String.Format("https://login.windows.net/common/oauth2/authorize?{0}", queryString));
         }
 
         public string GetAccessToken(string authorizationCode, string clientID, string clientSecret, string redirectUri)
@@ -176,14 +178,15 @@ namespace PBIWebApp
             // Get auth token from auth code       
             TokenCache TC = new TokenCache();
 
-            AuthenticationContext AC = new AuthenticationContext(Settings.Default.AuthorityUri, TC);
+            //Values are hard-coded for sample purposes
+            string authority = "https://login.windows.net/common/oauth2/authorize";
+            AuthenticationContext AC = new AuthenticationContext(authority, TC);
             ClientCredential cc = new ClientCredential(clientID, clientSecret);
 
             //Set token from authentication result
             return AC.AcquireTokenByAuthorizationCode(
                 authorizationCode,
-                new Uri(redirectUri), cc)
-                .AccessToken;
+                new Uri(redirectUri), cc).AccessToken;
         }
     }
 

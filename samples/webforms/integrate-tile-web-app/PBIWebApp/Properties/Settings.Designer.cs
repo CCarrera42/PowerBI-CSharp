@@ -25,25 +25,7 @@ namespace PBIWebApp.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("https://login.windows.net/common/oauth2/authorize")]
-        public string AuthorityUri {
-            get {
-                return ((string)(this["AuthorityUri"]));
-            }
-        }
-        
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("https://analysis.windows.net/powerbi/api")]
-        public string PowerBIAPI_Resource {
-            get {
-                return ((string)(this["PowerBIAPI_Resource"]));
-            }
-        }
-        
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("cfe63624-8afe-49b8-9940-15b65992c93d")]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
         public string ClientID {
             get {
                 return ((string)(this["ClientID"]));
@@ -52,10 +34,19 @@ namespace PBIWebApp.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("74I3k+xW7vFx7NIDTt/M7KwyMqtx/DzJglxUjMMQTfw=")]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
         public string ClientSecret {
             get {
                 return ((string)(this["ClientSecret"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("http://localhost:13526/")]
+        public string RedirectUri {
+            get {
+                return ((string)(this["RedirectUri"]));
             }
         }
     }

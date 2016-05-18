@@ -23,11 +23,11 @@ namespace PBIWebApp
         {
 
             //Need an Authorization Code from Azure AD before you can get an access token to be able to call Power BI operations
-            //You get the Authorization Code when you click Get Tile (see below).
+            //You get the Authorization Code when you click Get Report (see below).
             //After you call AcquireAuthorizationCode(), Azure AD redirects back to this page with an Authorization Code.
             if (Request.Params.Get("code") != null)
             {
-                //After you get an AccessToken, you can call Power BI API operations such as Get Tile
+                //After you get an AccessToken, you can call Power BI API operations such as Get Report
                 Session["AccessToken"] = GetAccessToken(
                     Request.Params.GetValues("code")[0],
                     Settings.Default.ClientID,
@@ -39,27 +39,24 @@ namespace PBIWebApp
             }
 
             //After the redirect above to get rid of code=, Session["authResult"] does not equal null, which means you have an
-            //Access Token. With the Acccess Token, you can call the Power BI Get Tiles operation. Get Tiles returns information
-            //about a tile, not the actual tile visual. You get the tile visual later with some JavaScript. See postActionLoadTile()
+            //Access Token. With the Acccess Token, you can call the Power BI Get Reports operation. Get Reports returns information
+            //about a Report, not the actual Report visual. You get the Report visual later with some JavaScript. See postActionLoadReport()
             //in Default.aspx.
             if (Session["AccessToken"] != null)            
             {
-                //You need the Access Token in an HTML element so that the JavaScript can load a tile visual into an IFrame.
-                //Without the Access Token, you can not access the tile visual.
+                //You need the Access Token in an HTML element so that the JavaScript can load a Report visual into an IFrame.
+                //Without the Access Token, you can not access the Report visual.
                 accessToken.Value = Session["AccessToken"].ToString();
 
-                //Get first dashboard. Sample assumes one dashboard with one tile
-                string dashboardId = GetDashboard(0);
-
-                //You can get the Dashboard ID with the Get Dashboards operation. Or go to your dashboard, and get it from the url for the dashboard.
-                //The dashboard id is at the end if the url. For example, https://msit.powerbi.com/groups/me/dashboards/00b7e871-cb98-48ed-bddc-0000c000e000              
-                //In this sample, you get the first tile in the first dashbaord. In a production app, you would create a more robost
+                //In this sample, you get the first Report. In a production app, you would create a more robost
                 //solution
-                GetTile(dashboardId, 0);
+
+                //Get first report. 
+                GetReport(0);
             }
         }
 
-        protected void getTileButton_Click(object sender, EventArgs e)
+        protected void getReportButton_Click(object sender, EventArgs e)
         {
             //You need an Authorization Code from Azure AD so that you can get an Access Token
             //Values are hard-coded for sample purposes.
@@ -67,65 +64,31 @@ namespace PBIWebApp
         }
 
 
-        //Get a dashbaord id. 
-        protected string GetDashboard(int index)
+        //Get a Report. In this sample, you get the first Report.
+        protected void GetReport(int index)
         {
-            string dashboardId = string.Empty;
-
-            //Configure tiles request
+            //Configure Reports request
             System.Net.WebRequest request = System.Net.WebRequest.Create(
-                String.Format("{0}Dashboards",
+                String.Format("{0}/Reports", 
                 baseUri)) as System.Net.HttpWebRequest;
 
             request.Method = "GET";
             request.ContentLength = 0;
             request.Headers.Add("Authorization", String.Format("Bearer {0}", accessToken.Value));
 
-            //Get dashboards response from request.GetResponse()
+            //Get Reports response from request.GetResponse()
             using (var response = request.GetResponse() as System.Net.HttpWebResponse)
             {
                 //Get reader from response stream
                 using (var reader = new System.IO.StreamReader(response.GetResponseStream()))
                 {
                     //Deserialize JSON string
-                    PBIDashboards dashboards = JsonConvert.DeserializeObject<PBIDashboards>(reader.ReadToEnd());
+                    PBIReports Reports = JsonConvert.DeserializeObject<PBIReports>(reader.ReadToEnd());
 
-                    //Sample assumes at least one Dashboard with one Tile.
-                    //You could write an app that lists all tiles in a dashboard
-                    dashboardId = dashboards.value[index].id;
-                }
-            }
-
-            return dashboardId;
-        }
-
-
-        //Get a tile from a dashboard. In this sample, you get the first tile.
-        protected void GetTile(string dashboardId, int index)
-        {
-            //Configure tiles request
-            System.Net.WebRequest request = System.Net.WebRequest.Create(
-                String.Format("{0}Dashboards/{1}/Tiles", 
-                baseUri,
-                dashboardId)) as System.Net.HttpWebRequest;
-
-            request.Method = "GET";
-            request.ContentLength = 0;
-            request.Headers.Add("Authorization", String.Format("Bearer {0}", accessToken.Value));
-
-            //Get tiles response from request.GetResponse()
-            using (var response = request.GetResponse() as System.Net.HttpWebResponse)
-            {
-                //Get reader from response stream
-                using (var reader = new System.IO.StreamReader(response.GetResponseStream()))
-                {
-                    //Deserialize JSON string
-                    PBITiles tiles = JsonConvert.DeserializeObject<PBITiles>(reader.ReadToEnd());
-
-                    //Sample assumes at least one Dashboard with one Tile.
-                    //You could write an app that lists all tiles in a dashboard
-                    if (tiles.value.Length > 0)
-                        tileEmbedUrl.Text = tiles.value[index].embedUrl;
+                    //Sample assumes at least one Report.
+                    //You could write an app that lists all Reports
+                    if (Reports.value.Length > 0)
+                        ReportEmbedUrl.Text = Reports.value[index].embedUrl;
                 }
             }
         }
@@ -190,26 +153,16 @@ namespace PBIWebApp
         }
     }
 
-    //Power BI Dashboards used to deserialize the Get Dashboards response.
-    public class PBIDashboards
-    { 
-        public PBIDashboard[] value { get; set; } 
-    } 
-    public class PBIDashboard
-    { 
-        public string id { get; set; } 
-        public string displayName { get; set; } 
-    } 
-
-    //Power BI Tiles used to deserialize the Get Tiles response.
-    public class PBITiles
+    //Power BI Reports used to deserialize the Get Reports response.
+    public class PBIReports
     {
-        public PBITile[] value { get; set; }
+        public PBIReport[] value { get; set; }
     }
-    public class PBITile
+    public class PBIReport
     {
         public string id { get; set; }
-        public string title { get; set; }
+        public string name { get; set; }
+        public string webUrl { get; set; }
         public string embedUrl { get; set; }
     }
 }
